@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"net"
@@ -10,6 +11,22 @@ import (
 )
 
 type server struct{}
+
+//step 1 definte the service of server(server is the 'server' defined above)
+func (*server) Greet(ctx context.Context, req *greetpb.GreetRequest) (*greetpb.GreetResponse, error) {
+	//to print the req
+	fmt.Printf("Greet function was invoked with %v", req)
+
+	//extract the information from the requset
+	firstName := req.GetGreeting().GetFirstName()
+
+	//form the response
+	result := "hello" + firstName
+	res := &greetpb.GreetResponse{
+		Result: result,
+	}
+	return res, nil
+}
 
 func main() {
 	fmt.Println("hello world")
