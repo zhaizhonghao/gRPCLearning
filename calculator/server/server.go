@@ -6,30 +6,31 @@ import (
 	"log"
 	"net"
 
-	"github.com/grpcLearning/greet/greetpb"
+	"github.com/grpcLearning/calculator/calculatorpb"
 	"google.golang.org/grpc"
 )
 
 type server struct{}
 
 //step 1 definte the service of server(server is the 'server' defined above)
-func (*server) Greet(ctx context.Context, req *greetpb.GreetRequest) (*greetpb.GreetResponse, error) {
+func (*server) Sum(ctx context.Context, req *calculatorpb.SumRequest) (*calculatorpb.SumResponse, error) {
 	//to print the req
-	fmt.Printf("Greet function was invoked with %v", req)
+	fmt.Printf("Sum function was invoked with %v", req)
 
 	//extract the information from the requset
-	firstName := req.GetGreeting().GetFirstName()
+	firstNum := req.GetFirstNum()
+	secondNum := req.GetSecondNum()
 
 	//form the response
-	result := "hello" + firstName
-	res := &greetpb.GreetResponse{
-		Result: result,
+	result := firstNum + secondNum
+	res := &calculatorpb.SumResponse{
+		SumResult: result,
 	}
 	return res, nil
 }
 
 func main() {
-	fmt.Println("hello world")
+	fmt.Println("Calculator server start!")
 
 	//create a listener containing the protocol and the port to listen
 	lis, err := net.Listen("tcp", "0.0.0.0:50051")
@@ -38,7 +39,7 @@ func main() {
 	}
 	//create teh grpc sever
 	s := grpc.NewServer()
-	greetpb.RegisterGreetServiceServer(s, &server{})
+	calculatorpb.RegisterCalculatorServiceServer(s, &server{})
 
 	//binding the listener and server
 	if err := s.Serve(lis); err != nil {
