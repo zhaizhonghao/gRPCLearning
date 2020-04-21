@@ -1,1 +1,1 @@
-protoc greet/greetpb/greet.proto --go_out=plugins:.
+protoc greet/pb/greet.proto --go_out=plugins:.
