@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"time"
 
 	"github.com/grpcLearning/calculator/calculatorpb"
 
@@ -25,7 +26,8 @@ func main() {
 	c := calculatorpb.NewCalculatorServiceClient(cc)
 
 	//doUnary(c)
-	doServerStreaming(c)
+	//doServerStreaming(c)
+	doClientStreaming(c)
 }
 
 func doUnary(c calculatorpb.CalculatorServiceClient) {
@@ -70,5 +72,44 @@ func doServerStreaming(c calculatorpb.CalculatorServiceClient) {
 		}
 		log.Printf("Resonse from GreetManyTimes %v", msg.GetPrime())
 	}
+
+}
+func doClientStreaming(c calculatorpb.CalculatorServiceClient) {
+	fmt.Println("Starting to do a client streaming RPC...")
+
+	requests := []*calculatorpb.ComputeAverageRequest{
+		&calculatorpb.ComputeAverageRequest{
+			Num: 1,
+		},
+		&calculatorpb.ComputeAverageRequest{
+			Num: 2,
+		},
+		&calculatorpb.ComputeAverageRequest{
+			Num: 3,
+		},
+		&calculatorpb.ComputeAverageRequest{
+			Num: 4,
+		},
+	}
+
+	stream, err := c.ComputeAverage(context.Background())
+
+	if err != nil {
+		log.Fatalf("error while calling LongGreet : %v", err)
+	}
+
+	//we iterate over our slice and send each message individually
+	for _, req := range requests {
+		fmt.Printf("Sending req:%v", req)
+		stream.Send(req)
+		time.Sleep(1000 * time.Millisecond)
+	}
+
+	res, err := stream.CloseAndRecv()
+	if err != nil {
+		log.Fatalf("error while receiving response from ComputeAverage: %v", err)
+	}
+
+	fmt.Printf("ComputeAverage Response: %v\n", res)
 
 }
