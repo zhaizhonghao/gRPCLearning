@@ -7,6 +7,10 @@ import (
 	"log"
 	"time"
 
+	"google.golang.org/grpc/codes"
+
+	"google.golang.org/grpc/status"
+
 	greetpb "github.com/grpcLearning/greet/pb"
 
 	"google.golang.org/grpc"
@@ -31,7 +35,10 @@ func main() {
 
 	//doClientStreaming(c)
 
-	doBiDiStream(c)
+	//doBiDiStream(c)
+
+	doUaryWithDeadline(c, 1*time.Second) //should complete
+	doUaryWithDeadline(c, 5*time.Second) //should timeout
 
 }
 
@@ -191,4 +198,37 @@ func doBiDiStream(c greetpb.GreetServiceClient) {
 	}()
 	//block until everything is done
 	<-waitc
+}
+
+func doUaryWithDeadline(c greetpb.GreetServiceClient, timeout time.Duration) {
+	fmt.Printf("Starting to do a doUnaryWithDeadline RPC...")
+	//Step 2: Define the request
+	req := &greetpb.GreetWithDeadlineRequest{
+		Greeting: &greetpb.Greeting{
+			FirstName: "zhai",
+			LastName:  "zhonghao",
+		},
+	}
+	//to set the deadline
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
+	//在golang当中，defer代码块会在函数调用链表中增加一个函数调用。这个函数调用不是普通的函数调用，而是会在函数正常返回，也就是return之后添加一个函数调用。因此，defer通常用来释放函数内部变量。
+	defer cancel()
+	//Step 1 : To call the Greet the function in the client
+	res, err := c.GreetWithDeadline(ctx, req)
+	if err != nil {
+		statusErr, ok := status.FromError(err)
+		if ok {
+			if statusErr.Code() == codes.DeadlineExceeded {
+				fmt.Println("Timeout was hit! Deadline was exceeded")
+			} else {
+				fmt.Printf("unexpected error:%v", err)
+			}
+		} else {
+			log.Fatalf("error while calling doUnaryWithDeadline RPC %v", err)
+		}
+		return
+	}
+
+	//Step 3: print the result of the req
+	log.Printf("Response from the doUnaryWithDeadline %v", res.Result)
 }
