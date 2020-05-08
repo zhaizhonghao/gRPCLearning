@@ -27,7 +27,7 @@ type server struct {
 
 //`bson:"_id, omitempty"` is a map to the feild name in the db
 type blogItem struct {
-	ID       primitive.ObjectID `bson:"_id, omitempty"`
+	ID       primitive.ObjectID `bson:"_id,omitempty"`
 	AuthorID string             `bson:"author_id"`
 	Content  string             `bson:"content"`
 	Title    string             `bson:"title"`
